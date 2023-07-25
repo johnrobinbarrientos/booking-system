@@ -1,0 +1,40 @@
+variables:
+  GIT_STRATEGY: clone
+  MYSQL_DATABASE: project_name
+  MYSQL_ROOT_PASSWORD: secret
+
+before_script:
+  - cd /home/rowpbk/application/
+
+#deploy_production:
+#  stage: deploy
+#  script:
+#    - git pull origin main
+#    - php composer.phar i
+#    - php artisan config:cache
+#    - php artisan migrate
+#  environment: production
+#  tags: 
+#    - production
+
+deploy_development:
+  stage: deploy
+  script:
+    - whoami
+    - \cp -Rf /home/gitlab-runner/builds/UVZs6LLA/0/rowland-contractors/rowlands-contractors-booking/. /home/rowpbk/application
+    - find /home/rowpbk/application -type f -exec chmod 664 {} \; > /dev/null 2>&1
+    - find /home/rowpbk/application -type d -exec chmod 775 {} \; > /dev/null 2>&1
+    - chown -R rowpbk:gitlab-runner /home/rowpbk/application > /dev/null 2>&1 || true
+    - php composer.phar i
+    - npm install
+    - npx vite build
+    - php artisan config:cache
+    - php artisan view:clear
+    - php artisan migrate
+    - php artisan storage:link
+  environment: development
+  tags: 
+    - development
+  only:
+    refs:
+      - dashboard
